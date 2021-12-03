@@ -157,11 +157,14 @@ bootstrap(Nodes) when is_list(Nodes) ->
 bootstrap(Node) when is_atom(Node) ->
     case mnesia:create_schema([Node]) of
         {error, {_, {already_exists, _}}} ->
+            %% Mandatory to be able to create disc_copies tables
+            _ = mnesia:change_table_copy_type(schema, node(), disc_copies),
             ok;
         _ ->
             _ = mnesia:stop(),
             _ = mnesia:delete_schema([Node]),
             _ = mnesia:create_schema([Node]),
+            _ = mnesia:change_table_copy_type(schema, node(), disc_copies),
             ok = mnesia:start()
     end.
 
